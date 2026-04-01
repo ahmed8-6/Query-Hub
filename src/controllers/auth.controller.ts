@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import { hash } from "bcrypt";
 import { createToken } from "../utils/jwt.js";
 import type { UserDocument } from "../models/user.model.js";
+import nodemailer from "nodemailer";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   const { username, email, password } = req.body;
@@ -37,4 +38,80 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-export { register, login };
+const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const identifier = req.body.username || req.body.email;
+    const user = await User.findOne({
+      $or: [{ username: identifier }, { email: identifier }],
+    });
+    if (!user) {
+      res.status(404).json({
+        status: "fail",
+        message: "user not found",
+      });
+    }
+    const email = user?.email;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASS,
+      },
+    });
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Reset Password",
+      text: `Your code verification to reset password is: ${code}`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, success) {
+      if (error) {
+        return res.status(500).json({
+          status: "fail",
+          message: error.message,
+        });
+      }
+      res.status(200).json({
+        status: "success",
+        message: "Email sent successfully",
+        messageId: success.messageId,
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { password } = req.body;
+    const _id = req.params.id;
+    const user = (await User.findOne({ _id })) as UserDocument;
+    const hashedPassword = await hash(password, 10);
+    user.password = hashedPassword;
+    await user.save();
+    res.status(200).json({
+      status: "success",
+      data: {
+        _id,
+        username: user.username,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { register, login, forgotPassword, resetPassword };
