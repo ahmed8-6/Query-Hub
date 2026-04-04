@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import type { Request, Response, NextFunction } from "express";
 import passport from "./config/passport.js";
 import authRouter from "./routes/auth.route.js";
+import userRoute from "./routes/user.route.js";
 dotenv.config();
 
 mongoose
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 app.use("/api/auth", authRouter);
+app.use("/api/users", userRoute);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(501).json({

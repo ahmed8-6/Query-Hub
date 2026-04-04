@@ -97,15 +97,15 @@ const resetPassword = async (
 ) => {
   try {
     const { password } = req.body;
-    const _id = req.params.id;
-    const user = (await User.findOne({ _id })) as UserDocument;
+    const { userId } = req.params;
+    const user = (await User.findById(userId)) as UserDocument;
     const hashedPassword = await hash(password, 10);
     user.password = hashedPassword;
     await user.save();
     res.status(200).json({
       status: "success",
       data: {
-        _id,
+        userId,
         username: user.username,
       },
     });

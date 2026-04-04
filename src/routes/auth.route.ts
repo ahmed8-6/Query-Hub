@@ -1,11 +1,11 @@
 import { Router } from "express";
+import passport from "passport";
 import {
   register,
   login,
   forgotPassword,
   resetPassword,
 } from "../controllers/auth.controller.js";
-import passport from "passport";
 
 const router = Router();
 
@@ -18,6 +18,6 @@ router.post(
 );
 
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:id", resetPassword);
+router.post("/reset-password/:userId", resetPassword);
 
 export default router;

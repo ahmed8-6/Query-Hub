@@ -1,0 +1,144 @@
+import type { Request, Response, NextFunction } from "express";
+import { User } from "../models/user.model.js";
+import { Question } from "../models/question.model.js";
+import { Answer } from "../models/answer.model.js";
+import type { UserDocument } from "../models/user.model.js";
+import type { QuestionDocument } from "../models/question.model.js";
+import mongoose from "mongoose";
+import ApiFeatures from "../utils/ApiFeatures.js";
+
+const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const apiFeatures = new ApiFeatures(User.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    apiFeatures.query = apiFeatures.query.select("-password");
+    const users = await apiFeatures.query;
+    res.status(200).json({
+      status: "success",
+      data: {
+        users,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.params;
+    const apiFeatures = new ApiFeatures(User.findById(userId), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    apiFeatures.query = apiFeatures.query.select("-password");
+    const user = await apiFeatures.query;
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.params;
+    const user = (await User.findById(userId)) as UserDocument;
+    const { username, email } = req.body;
+    if (username) {
+      user.username = username;
+    }
+    if (email) {
+      user.email = email;
+    }
+    await user.save();
+    res.status(200).json({
+      status: "success",
+      data: {
+        userId,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.params;
+    await User.findByIdAndDelete(userId);
+    res.status(200).json({
+      status: "success",
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getUserQuestions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { userId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
+  }
+
+  const objectId = new mongoose.Types.ObjectId(userId as string);
+  const apiFeatures = new ApiFeatures(
+    Question.find({ author: objectId }),
+    req.query,
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const questions = await apiFeatures.query;
+
+  res.status(200).json({ status: "success", data: { questions } });
+};
+
+const getUserAnswers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { userId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
+  }
+
+  const objectId = new mongoose.Types.ObjectId(userId as string);
+  const apiFeatures = new ApiFeatures(
+    Answer.find({ author: objectId }),
+    req.query,
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const answers = await apiFeatures.query;
+
+  res.status(200).json({ status: "success", data: { answers } });
+};
+
+export {
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  getUserQuestions,
+  getUserAnswers,
+};
