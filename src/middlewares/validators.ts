@@ -31,6 +31,26 @@ const registerValidator = [
     .withMessage("Password length must be between 8 and 64 characters."),
 ];
 
+const questionValidator = [
+  check("title")
+    .notEmpty()
+    .withMessage("Enter question title")
+    .isLength({ min: 15, max: 150 })
+    .withMessage(
+      "title length must be between at least 15 characters and 100 at most characters.",
+    ),
+
+  check("body")
+    .notEmpty()
+    .withMessage("Enter question body")
+    .isLength({ min: 15, max: 150 })
+    .withMessage("body length must be between at least 15 characters."),
+
+  check("tags")
+    .isArray({ min: 1 })
+    .withMessage("tags must be an array and at least has one tag."),
+];
+
 const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -42,4 +62,4 @@ const validate = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export { loginValidator, registerValidator, validate };
+export { loginValidator, registerValidator, questionValidator, validate };

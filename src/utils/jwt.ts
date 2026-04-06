@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import type { UserDocument } from "../models/user.model.js";
 dotenv.config();
 
-export const createToken = async (user: UserDocument) => {
+export const createToken = (user: UserDocument) => {
   const privateKey: string = process.env.JWT_SECRET as string;
   const token = jwt.sign(
-    { userId: user._id, username: user.username },
+    { userId: user._id.toString(), username: user.username },
     privateKey,
     { expiresIn: "1d" },
   );

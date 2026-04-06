@@ -7,7 +7,7 @@ import {
   deleteUser,
   getUserQuestions,
   getUserAnswers,
-} from "../controllers/user.controler.js";
+} from "../controllers/user.controller.js";
 
 const router = Router();
 

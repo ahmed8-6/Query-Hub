@@ -3,7 +3,6 @@ import { User } from "../models/user.model.js";
 import { Question } from "../models/question.model.js";
 import { Answer } from "../models/answer.model.js";
 import type { UserDocument } from "../models/user.model.js";
-import type { QuestionDocument } from "../models/question.model.js";
 import mongoose from "mongoose";
 import ApiFeatures from "../utils/ApiFeatures.js";
 
@@ -37,6 +36,12 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
       .paginate();
     apiFeatures.query = apiFeatures.query.select("-password");
     const user = await apiFeatures.query;
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
     res.status(200).json({
       status: "success",
       data: {
@@ -52,6 +57,12 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
     const user = (await User.findById(userId)) as UserDocument;
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
     const { username, email } = req.body;
     if (username) {
       user.username = username;
@@ -77,10 +88,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
     await User.findByIdAndDelete(userId);
-    res.status(200).json({
-      status: "success",
-      message: "User deleted successfully",
-    });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
