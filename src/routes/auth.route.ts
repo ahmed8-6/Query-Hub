@@ -6,13 +6,20 @@ import {
   forgotPassword,
   resetPassword,
 } from "../controllers/auth.controller.js";
+import {
+  loginValidator,
+  registerValidator,
+  validate,
+} from "../middlewares/validators.js";
 
 const router = Router();
 
-router.post("/register", register);
+router.post("/register", registerValidator, validate, register);
 
 router.post(
   "/login",
+  loginValidator,
+  validate,
   passport.authenticate("local", { session: false }),
   login,
 );
