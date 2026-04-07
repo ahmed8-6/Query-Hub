@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
 import { Question } from "../models/question.model.js";
-import type { QuestionDocument } from "../models/question.model.js";
 import mongoose from "mongoose";
 import ApiFeatures from "../utils/ApiFeatures.js";
 import type { AuthPayload } from "../types/auth.js";
@@ -38,6 +37,11 @@ const createQuestion = async (
     const { title, body, tags } = req.body;
     const user = req.user as AuthPayload;
     const userId = user.userId;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
     const author = new mongoose.Types.ObjectId(userId);
     const newQuestion = new Question({
       title,
@@ -90,11 +94,24 @@ const editQuestion = async (
 ) => {
   const { questionId } = req.params;
   const { title, body, tags } = req.body;
-  let question = (await Question.findById(questionId)) as QuestionDocument;
+  const user = req.user as AuthPayload;
+  const userId = user.userId;
+  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
+  }
+
+  let question = await Question.findById(questionId);
   if (!question) {
     return res.status(404).json({
       status: "fail",
       message: "Question not found",
+    });
+  }
+
+  if (question?.author.toString() !== userId) {
+    return res.status(403).json({
+      status: "fail",
+      message: "You can only delete your questions",
     });
   }
   if (title) {
