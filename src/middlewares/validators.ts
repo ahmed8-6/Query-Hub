@@ -43,12 +43,20 @@ const questionValidator = [
   check("body")
     .notEmpty()
     .withMessage("Enter question body")
-    .isLength({ min: 15, max: 150 })
+    .isLength({ min: 15 })
     .withMessage("body length must be between at least 15 characters."),
 
   check("tags")
     .isArray({ min: 1 })
     .withMessage("tags must be an array and at least has one tag."),
+];
+
+const answerValidator = [
+  check("body")
+    .notEmpty()
+    .withMessage("Enter question body")
+    .isLength({ min: 15, max: 150 })
+    .withMessage("body length must be between at least 15 characters."),
 ];
 
 const validate = (req: Request, res: Response, next: NextFunction) => {
@@ -62,4 +70,10 @@ const validate = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export { loginValidator, registerValidator, questionValidator, validate };
+export {
+  loginValidator,
+  registerValidator,
+  questionValidator,
+  answerValidator,
+  validate,
+};

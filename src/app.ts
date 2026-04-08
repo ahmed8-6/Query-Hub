@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import questionRoute from "./routes/question.route.js";
 import { Question } from "./models/question.model.js";
+import answerRoutes from "./routes/answer.routes.js";
 dotenv.config();
 
 mongoose
@@ -29,6 +30,7 @@ app.use(passport.initialize());
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRoute);
 app.use("/api/questions", questionRoute);
+app.use("/api/questions/:questionId/answers", answerRoutes);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(501).json({
