@@ -1,11 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { Answer } from "../models/answer.model.js";
-import type { AnswerDocument } from "../models/answer.model.js";
 import mongoose from "mongoose";
 import ApiFeatures from "../utils/ApiFeatures.js";
 import type { AuthPayload } from "../types/auth.js";
 import { Question } from "../models/question.model.js";
-import { stat } from "node:fs";
 
 const getAnswers = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -90,7 +88,7 @@ const editAnswer = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  if (answer?.author.toString() !== userId) {
+  if (answer.author.toString() !== userId) {
     return res.status(403).json({
       status: "fail",
       message: "You can only edit your answers",
