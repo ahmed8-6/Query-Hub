@@ -35,20 +35,12 @@ const questionSchema = new mongoose.Schema({
     ref: "Answer",
     default: null,
   },
-  views: { type: Number, default: 0 },
   status: {
     type: String,
     enum: ["open", "closed"],
     default: "open",
   },
   closedReason: { type: String },
-  editHistory: [
-    {
-      editedBy: { type: Schema.Types.ObjectId, ref: "User" },
-      editedAt: { type: Date, default: Date.now },
-      previousBody: { type: String },
-    },
-  ],
 });
 
 questionSchema.index(
