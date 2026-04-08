@@ -11,7 +11,13 @@ import {
   reopenQuestion,
   getQuestionVotes,
 } from "../controllers/question.controller.js";
-import { questionValidator, validate } from "../middlewares/validators.js";
+import { getComments, addComment } from "../controllers/comment.controller.js";
+import {
+  questionValidator,
+  commentValidator,
+  validate,
+} from "../middlewares/validators.js";
+
 const router = Router();
 
 router.get("/", getQuestions);
@@ -24,5 +30,13 @@ router.post("/:questionId/vote", isAuth, voteQuestion);
 router.post("/:questionId/close", isAuth, closeQuestion);
 router.post("/:questionId/reopen", isAuth, reopenQuestion);
 router.get("/:questionId/votes", getQuestionVotes);
+router.get("/:questionId/comments", getComments);
+router.post(
+  "/:questionId/comments",
+  isAuth,
+  commentValidator,
+  validate,
+  addComment,
+);
 
 export default router;
