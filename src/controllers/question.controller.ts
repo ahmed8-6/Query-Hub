@@ -117,7 +117,7 @@ const editQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId) {
+    if (question.author.toString() !== userId) {
       return res.status(403).json({
         status: "fail",
         message: "You can only edit your questions",
@@ -186,7 +186,7 @@ const deleteQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId && !user.isAdmin) {
+    if (question.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
         message: "You don't have the permission to delete this questions",
@@ -321,7 +321,7 @@ const closeQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId && !user.isAdmin) {
+    if (question.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
         message: "You don't have the permission to close this questions",
@@ -367,7 +367,7 @@ const reopenQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId && !user.isAdmin) {
+    if (question.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
         message: "You don't have the permission to reopen this questions",

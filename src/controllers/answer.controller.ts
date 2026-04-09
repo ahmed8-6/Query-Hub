@@ -140,7 +140,7 @@ const deleteAnswer = async (
         .json({ status: "fail", message: "Question not found" });
     }
 
-    if (answer?.author.toString() !== userId && !user.isAdmin) {
+    if (answer.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
         message: "You don't have the permission to delete this answer",
