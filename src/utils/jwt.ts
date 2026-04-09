@@ -6,7 +6,11 @@ dotenv.config();
 export const createToken = (user: UserDocument) => {
   const privateKey: string = process.env.JWT_SECRET as string;
   const token = jwt.sign(
-    { userId: user._id.toString(), username: user.username },
+    {
+      userId: user._id.toString(),
+      username: user.username,
+      isAdmin: user.isAdmin,
+    },
     privateKey,
     { expiresIn: "1d" },
   );
