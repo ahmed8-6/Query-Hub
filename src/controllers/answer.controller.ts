@@ -72,36 +72,42 @@ const createAnswer = async (
 };
 
 const editAnswer = async (req: Request, res: Response, next: NextFunction) => {
-  const { answerId } = req.params;
-  const { body } = req.body;
-  const user = req.user as AuthPayload;
-  const userId = user.userId;
-  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
-    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
-  }
+  try {
+    const { answerId } = req.params;
+    const { body } = req.body;
+    const user = req.user as AuthPayload;
+    const userId = user.userId;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
 
-  let answer = await Answer.findById(answerId);
-  if (!answer) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Answer not found",
-    });
-  }
+    let answer = await Answer.findById(answerId);
+    if (!answer) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Answer not found",
+      });
+    }
 
-  if (answer.author.toString() !== userId) {
-    return res.status(403).json({
-      status: "fail",
-      message: "You can only edit your answers",
+    if (answer.author.toString() !== userId) {
+      return res.status(403).json({
+        status: "fail",
+        message: "You can only edit your answers",
+      });
+    }
+    answer.body = body;
+    await answer.save();
+    res.status(200).json({
+      status: "success",
+      data: {
+        answer,
+      },
     });
+  } catch (error) {
+    next(error);
   }
-  answer.body = body;
-  await answer.save();
-  res.status(200).json({
-    status: "success",
-    data: {
-      answer,
-    },
-  });
 };
 
 const deleteAnswer = async (
@@ -250,45 +256,51 @@ const acceptAnswer = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { questionId, answerId } = req.params;
-  const user = req.user as AuthPayload;
-  const { userId } = user;
+  try {
+    const { questionId, answerId } = req.params;
+    const user = req.user as AuthPayload;
+    const { userId } = user;
 
-  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
-    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
-  }
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
 
-  let answer = await Answer.findById(answerId);
-  if (!answer) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Answer not found",
+    let answer = await Answer.findById(answerId);
+    if (!answer) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Answer not found",
+      });
+    }
+
+    let question = await Question.findById(questionId);
+    if (!question) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "Question not found" });
+    }
+
+    if (question.author.toString() !== userId) {
+      return res.status(403).json({
+        status: "fail",
+        message: "You don not have the permission to accept answer for ",
+      });
+    }
+
+    answer.isAccepted = true;
+    await answer.save();
+    question.acceptedAnswer = new mongoose.Types.ObjectId(answerId as string);
+    await question.save();
+
+    res.status(200).json({
+      status: "success",
+      answer,
     });
+  } catch (error) {
+    next(error);
   }
-
-  let question = await Question.findById(questionId);
-  if (!question) {
-    return res
-      .status(404)
-      .json({ status: "fail", message: "Question not found" });
-  }
-
-  if (question.author.toString() !== userId) {
-    return res.status(403).json({
-      status: "fail",
-      message: "You don not have the permission to accept answer for ",
-    });
-  }
-
-  answer.isAccepted = true;
-  await answer.save();
-  question.acceptedAnswer = new mongoose.Types.ObjectId(answerId as string);
-  await question.save();
-
-  res.status(200).json({
-    status: "success",
-    answer,
-  });
 };
 
 const getAnswerVotes = async (

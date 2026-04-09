@@ -92,69 +92,75 @@ const editQuestion = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { questionId } = req.params;
-  const { title, body, tags } = req.body;
-  if (!title && !body && !tags) {
-    return res.status(400).json({
-      status: "fail",
-      message: "You have to make a change on the question",
-    });
-  }
-  const user = req.user as AuthPayload;
-  const userId = user.userId;
-  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
-    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
-  }
+  try {
+    const { questionId } = req.params;
+    const { title, body, tags } = req.body;
+    if (!title && !body && !tags) {
+      return res.status(400).json({
+        status: "fail",
+        message: "You have to make a change on the question",
+      });
+    }
+    const user = req.user as AuthPayload;
+    const userId = user.userId;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
 
-  let question = await Question.findById(questionId);
-  if (!question) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Question not found",
-    });
-  }
+    let question = await Question.findById(questionId);
+    if (!question) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Question not found",
+      });
+    }
 
-  if (question?.author.toString() !== userId) {
-    return res.status(403).json({
-      status: "fail",
-      message: "You can only edit your questions",
+    if (question?.author.toString() !== userId) {
+      return res.status(403).json({
+        status: "fail",
+        message: "You can only edit your questions",
+      });
+    }
+    if (title) {
+      if (title.length < 15 && title.length > 100) {
+        return res.status(400).json({
+          status: "fail",
+          message:
+            "title length must be between at least 15 characters and 100 at most characters.",
+        });
+      }
+      question.title = title;
+    }
+    if (body) {
+      if (body.length < 15 && body.length > 100) {
+        return res.status(400).json({
+          status: "fail",
+          message: "body length must be between at least 15 characters.",
+        });
+      }
+      question.body = body;
+    }
+    if (tags) {
+      if (tags.length < 1) {
+        return res.status(400).json({
+          status: "fail",
+          message: "tags must be an array and at least has one tag.",
+        });
+      }
+      question.tags = tags;
+    }
+    await question.save();
+    res.status(200).json({
+      status: "success",
+      data: {
+        question,
+      },
     });
+  } catch (error) {
+    next(error);
   }
-  if (title) {
-    if (title.length < 15 && title.length > 100) {
-      return res.status(400).json({
-        status: "fail",
-        message:
-          "title length must be between at least 15 characters and 100 at most characters.",
-      });
-    }
-    question.title = title;
-  }
-  if (body) {
-    if (body.length < 15 && body.length > 100) {
-      return res.status(400).json({
-        status: "fail",
-        message: "body length must be between at least 15 characters.",
-      });
-    }
-    question.body = body;
-  }
-  if (tags) {
-    if (tags.length < 1) {
-      return res.status(400).json({
-        status: "fail",
-        message: "tags must be an array and at least has one tag.",
-      });
-    }
-    question.tags = tags;
-  }
-  await question.save();
-  res.status(200).json({
-    status: "success",
-    data: {
-      question,
-    },
-  });
 };
 
 const deleteQuestion = async (

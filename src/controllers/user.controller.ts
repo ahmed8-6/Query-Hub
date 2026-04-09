@@ -29,6 +29,11 @@ const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
 const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
     const apiFeatures = new ApiFeatures(User.findById(userId), req.query)
       .filter()
       .sort()
@@ -56,6 +61,11 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
     const user = (await User.findById(userId)) as UserDocument;
     if (!user) {
       return res.status(404).json({
@@ -87,6 +97,11 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
     await User.findByIdAndDelete(userId);
     res.status(204).send();
   } catch (error) {
@@ -99,23 +114,29 @@ const getUserQuestions = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { userId } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
-    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
+
+    const objectId = new mongoose.Types.ObjectId(userId as string);
+    const apiFeatures = new ApiFeatures(
+      Question.find({ author: objectId }),
+      req.query,
+    )
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const questions = await apiFeatures.query;
+
+    res.status(200).json({ status: "success", data: { questions } });
+  } catch (error) {
+    next(error);
   }
-
-  const objectId = new mongoose.Types.ObjectId(userId as string);
-  const apiFeatures = new ApiFeatures(
-    Question.find({ author: objectId }),
-    req.query,
-  )
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const questions = await apiFeatures.query;
-
-  res.status(200).json({ status: "success", data: { questions } });
 };
 
 const getUserAnswers = async (
@@ -123,23 +144,29 @@ const getUserAnswers = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { userId } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(userId as string)) {
-    return res.status(400).json({ status: "fail", message: "Invalid user ID" });
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
+
+    const objectId = new mongoose.Types.ObjectId(userId as string);
+    const apiFeatures = new ApiFeatures(
+      Answer.find({ author: objectId }),
+      req.query,
+    )
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const answers = await apiFeatures.query;
+
+    res.status(200).json({ status: "success", data: { answers } });
+  } catch (error) {
+    next(error);
   }
-
-  const objectId = new mongoose.Types.ObjectId(userId as string);
-  const apiFeatures = new ApiFeatures(
-    Answer.find({ author: objectId }),
-    req.query,
-  )
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const answers = await apiFeatures.query;
-
-  res.status(200).json({ status: "success", data: { answers } });
 };
 
 export {
