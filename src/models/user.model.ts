@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.index(
+  { username: "text", email: "text" },
+  { name: "user_text_index" },
+);
+
 const User = mongoose.model("User", userSchema);
 export type Iuser = InferSchemaType<typeof userSchema>;
 export type UserDocument = mongoose.HydratedDocument<Iuser>;

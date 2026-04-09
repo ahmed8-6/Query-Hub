@@ -1,6 +1,6 @@
 interface QueryLike {
   find(filter: Record<string, unknown>): QueryLike;
-  sort(sortBy: string): QueryLike;
+  sort(sortBy: any): QueryLike;
   select(fields: string): QueryLike;
   skip(value: number): QueryLike;
   limit(value: number): QueryLike;
@@ -15,7 +15,6 @@ interface QueryStringParams extends Record<string, unknown> {
   date_till?: string;
   q?: string;
   tag?: string;
-  author?: string;
   status?: string;
 }
 
@@ -33,33 +32,28 @@ class ApiFeatures<TQuery extends QueryLike> {
     this.queryStr = queryStr;
   }
 
-  search(): this {
-    const searchFilter: Record<string, unknown> = {};
-
+  search(fields: string[] = ["title", "body"]): this {
     if (typeof this.queryStr.q === "string" && this.queryStr.q.trim()) {
-      searchFilter.$text = { $search: this.queryStr.q.trim() };
+      const regex = new RegExp(this.queryStr.q.trim(), "i");
+      const orConditions = fields.map((field) => ({
+        [field]: { $regex: regex },
+      }));
+      this.query = this.query.find({ $or: orConditions } as any) as TQuery;
     }
 
     if (typeof this.queryStr.tag === "string" && this.queryStr.tag.trim()) {
-      searchFilter.tags = this.queryStr.tag.toLowerCase().trim();
-    }
-
-    if (
-      typeof this.queryStr.author === "string" &&
-      this.queryStr.author.trim()
-    ) {
-      searchFilter.author = this.queryStr.author.trim();
+      this.query = this.query.find({
+        tags: this.queryStr.tag.toLowerCase().trim(),
+      } as any) as TQuery;
     }
 
     if (
       typeof this.queryStr.status === "string" &&
       this.queryStr.status.trim()
     ) {
-      searchFilter.status = this.queryStr.status.trim();
-    }
-
-    if (Object.keys(searchFilter).length > 0) {
-      this.query = this.query.find(searchFilter) as TQuery;
+      this.query = this.query.find({
+        status: this.queryStr.status.trim(),
+      } as any) as TQuery;
     }
 
     return this;
@@ -84,22 +78,22 @@ class ApiFeatures<TQuery extends QueryLike> {
       dateRange.$lte.setHours(23, 59, 59, 999);
     }
 
+    // Exclude all special fields
     const excludeFields = [
-      "date_from",
-      "date_till",
-      "q",
-      "tag",
-      "author",
-      "status",
       "sort",
       "fields",
       "page",
       "limit",
+      "q",
+      "tag",
+      "status",
+      "date_from",
+      "date_till",
     ];
     excludeFields.forEach((field) => delete queryObj[field]);
 
     if (Object.keys(dateRange).length > 0) {
-      queryObj.date_from = dateRange;
+      queryObj.createdAt = dateRange;
     }
 
     if (Object.keys(queryObj).length > 0) {
@@ -117,13 +111,8 @@ class ApiFeatures<TQuery extends QueryLike> {
       const sortBy = this.queryStr.sort.split(",").join(" ");
       this.query = this.query.sort(sortBy) as TQuery;
     } else {
-      if (typeof this.queryStr.q === "string" && this.queryStr.q.trim()) {
-        this.query = this.query.sort({
-          score: { $meta: "textScore" },
-        } as any) as TQuery;
-      } else {
-        this.query = this.query.sort("-createdAt") as TQuery;
-      }
+      // ✅ Simple default — no textScore
+      this.query = this.query.sort("-createdAt") as TQuery;
     }
     return this;
   }
@@ -136,7 +125,7 @@ class ApiFeatures<TQuery extends QueryLike> {
       const fields = this.queryStr.fields.split(",").join(" ");
       this.query = this.query.select(fields) as TQuery;
     } else {
-      this.query = this.query.select("-__v -editHistory") as TQuery;
+      this.query = this.query.select("-__v") as TQuery;
     }
     return this;
   }

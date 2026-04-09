@@ -11,7 +11,7 @@ const getQuestions = async (
 ) => {
   try {
     const apiFeatures = new ApiFeatures(Question.find(), req.query)
-      .search()
+      .search(["title", "body"])
       .filter()
       .sort()
       .limitFields()

@@ -11,6 +11,7 @@ import answerRoutes from "./routes/answer.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
 import tagRoutes from "./routes/tag.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import { User } from "./models/user.model.js";
 dotenv.config();
 
 mongoose
@@ -18,6 +19,7 @@ mongoose
   .then(async () => {
     console.log(`server connected to database`);
     await Question.syncIndexes();
+    await User.syncIndexes();
   })
   .catch((error) => {
     console.log(`failed to connect to database`, error);

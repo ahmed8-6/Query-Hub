@@ -9,6 +9,7 @@ import ApiFeatures from "../utils/ApiFeatures.js";
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const apiFeatures = new ApiFeatures(User.find(), req.query)
+      .search(["username", "email"])
       .filter()
       .sort()
       .limitFields()
