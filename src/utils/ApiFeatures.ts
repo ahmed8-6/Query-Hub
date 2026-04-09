@@ -56,8 +56,6 @@ class ApiFeatures<TQuery extends QueryLike> {
       this.queryStr.status.trim()
     ) {
       searchFilter.status = this.queryStr.status.trim();
-    } else {
-      searchFilter.status = "open"; // default
     }
 
     if (Object.keys(searchFilter).length > 0) {
