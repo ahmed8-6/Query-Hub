@@ -9,6 +9,7 @@ import questionRoute from "./routes/question.route.js";
 import { Question } from "./models/question.model.js";
 import answerRoutes from "./routes/answer.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
+import tagRoutes from "./routes/tag.routes.js";
 dotenv.config();
 
 mongoose
@@ -33,6 +34,7 @@ app.use("/api/users", userRoute);
 app.use("/api/questions", questionRoute);
 app.use("/api/questions/:questionId/answers", answerRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/tags", tagRoutes);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(501).json({

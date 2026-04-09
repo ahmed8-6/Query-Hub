@@ -67,6 +67,19 @@ const commentValidator = [
     .withMessage("comment length must be at least 15 characters."),
 ];
 
+const tagValidator = [
+  check("name")
+    .notEmpty()
+    .withMessage("Enter a tag")
+    .isLength({ min: 2, max: 35 })
+    .withMessage(
+      "tag name must be at least 2 characters and at most 35 characters.",
+    ),
+  check("description")
+    .isLength({ max: 500 })
+    .withMessage("tag description must be at most 500 characters."),
+];
+
 const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -84,5 +97,6 @@ export {
   questionValidator,
   answerValidator,
   commentValidator,
+  tagValidator,
   validate,
 };
