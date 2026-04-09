@@ -34,13 +34,7 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
         .status(400)
         .json({ status: "fail", message: "Invalid user ID" });
     }
-    const apiFeatures = new ApiFeatures(User.findById(userId), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    apiFeatures.query = apiFeatures.query.select("-password");
-    const user = await apiFeatures.query;
+    const user = await User.findById(userId).select("-password");
     if (!user) {
       return res.status(404).json({
         status: "fail",
@@ -102,6 +96,13 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
         .status(400)
         .json({ status: "fail", message: "Invalid user ID" });
     }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
     await User.findByIdAndDelete(userId);
     res.status(204).send();
   } catch (error) {
@@ -122,6 +123,14 @@ const getUserQuestions = async (
         .json({ status: "fail", message: "Invalid user ID" });
     }
 
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+
     const objectId = new mongoose.Types.ObjectId(userId as string);
     const apiFeatures = new ApiFeatures(
       Question.find({ author: objectId }),
@@ -133,7 +142,7 @@ const getUserQuestions = async (
       .paginate();
     const questions = await apiFeatures.query;
 
-    res.status(200).json({ status: "success", data: { questions } });
+    res.status(200).json({ status: "success", user, data: { questions } });
   } catch (error) {
     next(error);
   }
@@ -152,6 +161,14 @@ const getUserAnswers = async (
         .json({ status: "fail", message: "Invalid user ID" });
     }
 
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+
     const objectId = new mongoose.Types.ObjectId(userId as string);
     const apiFeatures = new ApiFeatures(
       Answer.find({ author: objectId }),
@@ -163,7 +180,7 @@ const getUserAnswers = async (
       .paginate();
     const answers = await apiFeatures.query;
 
-    res.status(200).json({ status: "success", data: { answers } });
+    res.status(200).json({ status: "success", user, data: { answers } });
   } catch (error) {
     next(error);
   }
