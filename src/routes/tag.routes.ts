@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { isAuth } from "../middlewares/isAuth.js";
 import { isAdmin } from "../middlewares/isAdmin.js";
-import {} from "../controllers/question.controller.js";
 import { tagValidator, validate } from "../middlewares/validators.js";
 import {
   getTags,

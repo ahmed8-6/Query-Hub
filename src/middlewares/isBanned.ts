@@ -1,7 +1,5 @@
-// middlewares/isBanned.ts
 import type { Request, Response, NextFunction } from "express";
 import { User, type UserDocument } from "../models/user.model.js";
-import type { AuthPayload } from "../types/auth.js";
 
 export const isBanned = async (
   req: Request,

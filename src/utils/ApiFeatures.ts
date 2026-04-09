@@ -78,7 +78,6 @@ class ApiFeatures<TQuery extends QueryLike> {
       dateRange.$lte.setHours(23, 59, 59, 999);
     }
 
-    // Exclude all special fields
     const excludeFields = [
       "sort",
       "fields",
@@ -111,7 +110,6 @@ class ApiFeatures<TQuery extends QueryLike> {
       const sortBy = this.queryStr.sort.split(",").join(" ");
       this.query = this.query.sort(sortBy) as TQuery;
     } else {
-      // ✅ Simple default — no textScore
       this.query = this.query.sort("-createdAt") as TQuery;
     }
     return this;
