@@ -167,7 +167,7 @@ const deleteComment = async (
       });
     }
 
-    if (comment.author.toString() !== userId) {
+    if (comment.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
         message: "You can only delete your comments",

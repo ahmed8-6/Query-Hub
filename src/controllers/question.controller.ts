@@ -186,10 +186,10 @@ const deleteQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId) {
+    if (question?.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
-        message: "You can only delete your questions",
+        message: "You don't have the permission to delete this questions",
       });
     }
 
@@ -321,10 +321,11 @@ const closeQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId) {
-      return res
-        .status(403)
-        .json({ status: "fail", message: "You can only close your questions" });
+    if (question?.author.toString() !== userId && !user.isAdmin) {
+      return res.status(403).json({
+        status: "fail",
+        message: "You don't have the permission to close this questions",
+      });
     }
 
     question.status = "closed";
@@ -366,10 +367,10 @@ const reopenQuestion = async (
       });
     }
 
-    if (question?.author.toString() !== userId) {
+    if (question?.author.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({
         status: "fail",
-        message: "You can only reopen your questions",
+        message: "You don't have the permission to reopen this questions",
       });
     }
 

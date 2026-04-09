@@ -11,6 +11,7 @@ import {
   registerValidator,
   validate,
 } from "../middlewares/validators.js";
+import { isBanned } from "../middlewares/isBanned.js";
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.post(
   loginValidator,
   validate,
   passport.authenticate("local", { session: false }),
+  isBanned,
   login,
 );
 

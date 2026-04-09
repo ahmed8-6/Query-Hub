@@ -186,6 +186,45 @@ const getUserAnswers = async (
   }
 };
 
+const getUserStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId as string)) {
+      return res
+        .status(400)
+        .json({ status: "fail", message: "Invalid user ID" });
+    }
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+    const author = new mongoose.Types.ObjectId(userId as string);
+    const questions = await Question.find({ author }).countDocuments();
+    const answers = await Answer.find({ author }).countDocuments();
+    const comments = await Answer.find({ author }).countDocuments();
+
+    res.status(200).json({
+      status: "success",
+      user,
+      data: {
+        questions,
+        answers,
+        comments,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getAllUsers,
   getUserById,
@@ -193,4 +232,5 @@ export {
   deleteUser,
   getUserQuestions,
   getUserAnswers,
+  getUserStats,
 };
