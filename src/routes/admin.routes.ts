@@ -19,7 +19,7 @@ import {
 const router = Router({ mergeParams: true });
 
 router.get("/users", getAllUsers);
-router.patch("/users/:userId/ban", banUser);
+router.patch("/users/:userId/ban", isAuth, isAdmin, banUser);
 router.patch("/users/:userId/unban", isAuth, isAdmin, unbanUser);
 router.patch("/users/:userId/role", isAuth, isAdmin, changeUserRole);
 router.delete("/questions/:questionId", isAuth, isAdmin, deleteQuestion);

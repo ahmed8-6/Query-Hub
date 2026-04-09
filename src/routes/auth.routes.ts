@@ -3,6 +3,7 @@ import passport from "passport";
 import {
   register,
   login,
+  logout,
   forgotPassword,
   resetPassword,
 } from "../controllers/auth.controller.js";
@@ -12,6 +13,7 @@ import {
   validate,
 } from "../middlewares/validators.js";
 import { isBanned } from "../middlewares/isBanned.js";
+import { isAuth } from "../middlewares/isAuth.js";
 
 const router = Router();
 
@@ -25,6 +27,8 @@ router.post(
   isBanned,
   login,
 );
+
+router.post("/logout", isAuth, logout);
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:userId", resetPassword);

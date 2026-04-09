@@ -4,6 +4,7 @@ import { hash } from "bcrypt";
 import { createToken } from "../utils/jwt.js";
 import type { UserDocument } from "../models/user.model.js";
 import nodemailer from "nodemailer";
+import { addToBlacklist } from "../utils/tokenBlacklist.js";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -40,6 +41,25 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     status: "success",
     data: { id: user._id, token: token },
   });
+};
+
+const logout = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      res.status(400).json({ success: false, message: "No token provided" });
+      return;
+    }
+
+    addToBlacklist(token);
+
+    res
+      .status(200)
+      .json({ status: "success", message: "Logged out successfully" });
+  } catch (err) {
+    next(err);
+  }
 };
 
 const forgotPassword = async (
@@ -118,4 +138,4 @@ const resetPassword = async (
   }
 };
 
-export { register, login, forgotPassword, resetPassword };
+export { register, login, logout, forgotPassword, resetPassword };
