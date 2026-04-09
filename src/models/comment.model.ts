@@ -3,7 +3,7 @@ import { Schema, model, Document, Types } from "mongoose";
 export interface IComment extends Document {
   body: string;
   author: Types.ObjectId;
-  targetType: "Question" | "Answer"; // polymorphic — works for both
+  targetType: "Question" | "Answer";
   targetId: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
