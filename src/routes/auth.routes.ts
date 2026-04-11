@@ -12,21 +12,13 @@ import {
   registerValidator,
   validate,
 } from "../middlewares/validators.js";
-import { isBanned } from "../middlewares/isBanned.js";
 import { isAuth } from "../middlewares/isAuth.js";
 
 const router = Router();
 
 router.post("/register", registerValidator, validate, register);
 
-router.post(
-  "/login",
-  loginValidator,
-  validate,
-  passport.authenticate("local", { session: false }),
-  isBanned,
-  login,
-);
+router.post("/login", loginValidator, validate, login);
 
 router.post("/logout", isAuth, logout);
 

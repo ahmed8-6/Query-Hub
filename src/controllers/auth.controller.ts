@@ -5,6 +5,7 @@ import { createToken } from "../utils/jwt.js";
 import type { UserDocument } from "../models/user.model.js";
 import nodemailer from "nodemailer";
 import { addToBlacklist } from "../utils/tokenBlacklist.js";
+import passport from "passport";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -34,13 +35,42 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const login = async (req: Request, res: Response, next: NextFunction) => {
-  const user = req.user as UserDocument;
-  const token = createToken(user);
-  res.json({
-    status: "success",
-    data: { id: user._id, token: token },
-  });
+const login = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate(
+    "local",
+    { session: false },
+    (err: Error, user: UserDocument, info: { message: string }) => {
+      if (err) {
+        return next(err);
+      }
+
+      if (!user) {
+        return res.status(401).json({
+          status: "fail",
+          message: info?.message || "Auth failed",
+        });
+      }
+
+      if (user.isBanned) {
+        return res.status(403).json({
+          status: "fail",
+          message: `Your account has been banned. Reason: ${user.banReason}`,
+        });
+      }
+
+      const token = createToken(user);
+
+      res.status(200).json({
+        status: "success",
+        token,
+        data: {
+          userId: user._id,
+          username: user.username,
+          email: user.email,
+        },
+      });
+    },
+  )(req, res, next);
 };
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
