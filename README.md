@@ -1,5 +1,8 @@
 # Query Hub
 
+A fully-featured **RESTful Q&A platform backend** inspired by Stack Overflow, 
+built with **TypeScript**, **Node.js / Express.js**, and **MongoDB**.
+
 ## Tech Stack
 
 - **TypeScript** (100%)
@@ -10,6 +13,21 @@
 - **bcrypt** for password hashing
 - **express-validator** for server-side validation
 - **nodemailer** for email services
+---
+
+## Features
+
+- JWT Authentication with Passport.js (login, register, logout with token blacklist)
+- Full Question management (create, edit, delete, search, filter, sort, paginate)
+- Answer management with accepted answer support
+- Voting system (upvote/downvote) for questions and answers with toggle support
+- Nested comments on questions and answers
+- Tag system with auto-creation and usage count tracking
+- Search and filter with a reusable ApiFeatures utility class
+- Role-based access control (user, admin)
+- User ban system with reason tracking
+- Admin dashboard with platform statistics
+- Pagination, sorting, and field limiting on all list endpoints
 ---
 
 ## Project Structure
