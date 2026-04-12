@@ -12,6 +12,8 @@ import commentRoutes from "./routes/comment.routes.js";
 import tagRoutes from "./routes/tag.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import { User } from "./models/user.model.js";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger.js";
 dotenv.config();
 
 mongoose
@@ -31,6 +33,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(passport.initialize());
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRoute);
