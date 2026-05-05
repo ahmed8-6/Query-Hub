@@ -167,6 +167,41 @@ const resetPassword = async (
   }
 };
 
+const updatePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { identifier, currentPassword, newPassword } = req.body;
+
+  const user = await User.findOne({
+    $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
+  });
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  const validPassword = await compare(currentPassword, user.password);
+  if (!validPassword) {
+    return res.status(404).json({
+      success: false,
+      message: "Wrong password",
+    });
+  }
+
+  const hashedPassword = await hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+};
+
 const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
   const { identifier, otp } = req.body;
   try {
@@ -208,4 +243,12 @@ const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { register, login, logout, forgotPassword, resetPassword, verifyOTP };
+export {
+  register,
+  login,
+  logout,
+  forgotPassword,
+  resetPassword,
+  updatePassword,
+  verifyOTP,
+};

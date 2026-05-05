@@ -7,6 +7,7 @@ import {
   forgotPassword,
   resetPassword,
   verifyOTP,
+  updatePassword,
 } from "../controllers/auth.controller.js";
 import {
   loginValidator,
@@ -224,5 +225,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:userId", resetPassword);
 
 router.post("/verify-otp", verifyOTP);
+
+router.post("/update-password", isAuth, updatePassword);
 
 export default router;
