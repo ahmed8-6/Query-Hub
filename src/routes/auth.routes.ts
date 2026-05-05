@@ -224,8 +224,98 @@ router.post("/forgot-password", forgotPassword);
  */
 router.post("/reset-password/:userId", resetPassword);
 
+/**
+ * @swagger
+ * /auth/verify-otp:
+ *   post:
+ *     summary: Verify OTP sent to user's email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - identifier
+ *               - otp
+ *             properties:
+ *               identifier:
+ *                 type: string
+ *                 description: User's username or email
+ *               otp:
+ *                 type: string
+ *                 description: The OTP code sent to the user's email
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid OTP or OTP has expired
+ *       404:
+ *         description: User not found
+ */
 router.post("/verify-otp", verifyOTP);
 
+/**
+ * @swagger
+ * /auth/update-password:
+ *   post:
+ *     summary: Update user's password (requires authentication)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - identifier
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               identifier:
+ *                 type: string
+ *                 description: User's username or email
+ *               currentPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: The user's current password
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: The new password
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid or missing fields
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: User not found or wrong current password
+ */
 router.post("/update-password", isAuth, updatePassword);
 
 export default router;
