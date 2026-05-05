@@ -15,7 +15,7 @@ passport.use(
   new LocalStrategy(customFields, async (identifier, password, done) => {
     try {
       const user = await User.findOne({
-        $or: [{ username: identifier }, { email: identifier }],
+        $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
       });
       if (!user) {
         return done(null, false, { message: "Incorrect username or email." });
