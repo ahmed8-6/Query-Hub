@@ -4,6 +4,9 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
+  otp: { type: String, default: null },
+  otpExpiresAt: { type: Date, default: null },
+  verified: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
   isBanned: {
     type: Boolean,

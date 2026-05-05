@@ -26,6 +26,10 @@ passport.use(
         return done(null, false, { message: "Incorrect password." });
       }
 
+      if (!user.verified) {
+        return done(null, false, { message: "Email not verified." });
+      }
+
       return done(null, user);
     } catch (error) {
       return done(error);

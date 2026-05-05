@@ -1,11 +1,11 @@
 import { User } from "../models/user.model.js";
 import type { Request, Response, NextFunction } from "express";
-import { hash } from "bcrypt";
+import { compare, hash } from "bcrypt";
 import { createToken } from "../utils/jwt.js";
 import type { UserDocument } from "../models/user.model.js";
-import nodemailer from "nodemailer";
 import { addToBlacklist } from "../utils/tokenBlacklist.js";
 import passport from "passport";
+import { sendEmail } from "../utils/email.js";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -21,10 +21,23 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     const hashedPassword = await hash(password, 10);
     const newUser = new User({
       username: username,
-      email: email,
+      email: email.toLowerCase(),
       password: hashedPassword,
     });
     await newUser.save();
+
+    const otp = await sendEmail(
+      newUser.email,
+      "Email Verification Code",
+      "Your email verification code is:",
+    );
+
+    const hashedOtp = await hash(otp, 10);
+
+    newUser.otp = hashedOtp;
+    newUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    await newUser.save();
+
     res.status(201).json({
       status: "success",
       message: "User created successfully",
@@ -103,41 +116,27 @@ const forgotPassword = async (
       $or: [{ username: identifier }, { email: identifier }],
     });
     if (!user) {
-      res.status(404).json({
+      return res.status(404).json({
         status: "fail",
         message: "user not found",
       });
     }
-    const email = user?.email;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASS,
-      },
-    });
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const otp = await sendEmail(
+      user.email,
+      "Password Reset Code",
+      "Your password reset code is:",
+    );
 
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: email,
-      subject: "Reset Password",
-      text: `Your code verification to reset password is: ${code}`,
-    };
+    const hashedOtp = await hash(otp, 10);
 
-    transporter.sendMail(mailOptions, function (error, success) {
-      if (error) {
-        return res.status(500).json({
-          status: "fail",
-          message: error.message,
-        });
-      }
-      res.status(200).json({
-        status: "success",
-        message: "Email sent successfully",
-        messageId: success.messageId,
-      });
+    user.otp = hashedOtp;
+    user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset code sent to email",
     });
   } catch (error) {
     next(error);
@@ -168,4 +167,45 @@ const resetPassword = async (
   }
 };
 
-export { register, login, logout, forgotPassword, resetPassword };
+const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
+  const { identifier, otp } = req.body;
+  try {
+    const user = await User.findOne({
+      $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
+    });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    const isMatch = await compare(otp as string, user.otp as string);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+    if (
+      (user.otpExpiresAt?.toDateString() as string) < new Date().toDateString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired",
+      });
+    }
+    await User.findByIdAndUpdate(user._id, {
+      otp: null,
+      otpExpiresAt: null,
+      verified: true,
+    });
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { register, login, logout, forgotPassword, resetPassword, verifyOTP };
