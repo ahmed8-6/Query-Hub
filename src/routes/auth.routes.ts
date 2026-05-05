@@ -6,6 +6,7 @@ import {
   logout,
   forgotPassword,
   resetPassword,
+  verifyOTP,
 } from "../controllers/auth.controller.js";
 import {
   loginValidator,
@@ -221,5 +222,7 @@ router.post("/forgot-password", forgotPassword);
  *                       type: string
  */
 router.post("/reset-password/:userId", resetPassword);
+
+router.post("/verify-otp", verifyOTP);
 
 export default router;
