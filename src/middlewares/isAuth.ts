@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import type { AuthPayload } from "../types/auth.js";
+import { verifyAccessToken } from "../utils/jwt.js";
 import { isBlacklisted } from "../utils/tokenBlacklist.js";
 export const isAuth = async (
   req: Request,
@@ -21,9 +20,14 @@ export const isAuth = async (
     });
     return;
   }
-  const privateKey: string = process.env.JWT_SECRET as string;
   try {
-    const decodedToken = jwt.verify(token, privateKey) as AuthPayload;
+    const decodedToken = verifyAccessToken(token);
+    if (!decodedToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid access token",
+      });
+    }
     req.user = decodedToken;
     next();
   } catch (error) {

@@ -1,7 +1,7 @@
 import { User } from "../models/user.model.js";
 import type { Request, Response, NextFunction } from "express";
 import { compare, hash } from "bcrypt";
-import { createToken } from "../utils/jwt.js";
+import { createTokens, verifyRefreshToken } from "../utils/jwt.js";
 import type { UserDocument } from "../models/user.model.js";
 import { addToBlacklist } from "../utils/tokenBlacklist.js";
 import passport from "passport";
@@ -71,11 +71,16 @@ const login = (req: Request, res: Response, next: NextFunction) => {
         });
       }
 
-      const token = createToken(user);
+      const { accessToken, refreshToken } = createTokens({
+        id: user._id.toString(),
+        username: user.username,
+        isAdmin: user.isAdmin,
+      });
 
       res.status(200).json({
         status: "success",
-        token,
+        accessToken,
+        refreshToken,
         data: {
           userId: user._id,
           username: user.username,
@@ -200,6 +205,46 @@ const updatePassword = async (
     success: true,
     message: "Password updated successfully",
   });
+};
+
+const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  let oldRefreshToken = req.headers.authorization?.split(" ")[1];
+  try {
+    const payload = verifyRefreshToken(oldRefreshToken as string);
+    if (!payload) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+    }
+
+    const user = await User.findById(payload.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const { accessToken, refreshToken } = createTokens({
+      id: payload.id,
+      username: payload.username,
+      isAdmin: payload.isAdmin,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully",
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
