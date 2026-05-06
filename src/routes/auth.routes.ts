@@ -7,6 +7,7 @@ import {
   resetPassword,
   verifyOTP,
   updatePassword,
+  refreshToken,
 } from "../controllers/auth.controller.js";
 import {
   loginValidator,
@@ -313,8 +314,47 @@ router.post("/verify-otp", verifyOTP);
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *       404:
- *         description: User not found or wrong current password
+ *         description: User not found
  */
 router.post("/update-password", isAuth, updatePassword);
+
+/**
+ * @swagger
+ * /auth/refresh-token:
+ *   post:
+ *     summary: Refresh access token using a refresh token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: The refresh token issued at login
+ *     responses:
+ *       200:
+ *         description: New access token issued
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 token:
+ *                   type: string
+ *                   description: New JWT access token
+ *       400:
+ *         description: Missing refresh token
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+router.post("/refresh-token", refreshToken);
 
 export default router;

@@ -52,7 +52,7 @@ const login = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate(
     "local",
     { session: false },
-    (err: Error, user: UserDocument, info: { message: string }) => {
+    async (err: Error, user: UserDocument, info: { message: string }) => {
       if (err) {
         return next(err);
       }
@@ -76,6 +76,12 @@ const login = (req: Request, res: Response, next: NextFunction) => {
         username: user.username,
         isAdmin: user.isAdmin,
       });
+
+      user.refreshToken = refreshToken;
+      user.refreshTokenExpiresAt = new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000,
+      );
+      await user.save();
 
       res.status(200).json({
         status: "success",
@@ -116,9 +122,9 @@ const forgotPassword = async (
   next: NextFunction,
 ) => {
   try {
-    const identifier = req.body.username || req.body.email;
+    const { email } = req.body;
     const user = await User.findOne({
-      $or: [{ username: identifier }, { email: identifier }],
+      email: email.toLowerCase(),
     });
     if (!user) {
       return res.status(404).json({
@@ -177,10 +183,10 @@ const updatePassword = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { identifier, currentPassword, newPassword } = req.body;
+  const { email, currentPassword, newPassword } = req.body;
 
   const user = await User.findOne({
-    $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
+    email: email.toLowerCase(),
   });
   if (!user) {
     return res.status(404).json({
@@ -191,7 +197,7 @@ const updatePassword = async (
 
   const validPassword = await compare(currentPassword, user.password);
   if (!validPassword) {
-    return res.status(404).json({
+    return res.status(401).json({
       success: false,
       message: "Wrong password",
     });
@@ -224,9 +230,19 @@ const refreshToken = async (
 
     const user = await User.findById(payload.id);
     if (!user) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: "Invalid refresh token",
+      });
+    }
+
+    if (
+      user.refreshToken !== oldRefreshToken ||
+      (user.refreshTokenExpiresAt as Date) < new Date()
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
       });
     }
 
@@ -235,6 +251,10 @@ const refreshToken = async (
       username: payload.username,
       isAdmin: payload.isAdmin,
     });
+
+    user.refreshToken = refreshToken;
+    user.refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await user.save();
 
     res.status(200).json({
       success: true,
@@ -248,10 +268,10 @@ const refreshToken = async (
 };
 
 const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
-  const { identifier, otp } = req.body;
+  const { email, otp } = req.body;
   try {
     const user = await User.findOne({
-      $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
+      email: email.toLowerCase(),
     });
     if (!user) {
       return res.status(404).json({
@@ -295,5 +315,6 @@ export {
   forgotPassword,
   resetPassword,
   updatePassword,
+  refreshToken,
   verifyOTP,
 };

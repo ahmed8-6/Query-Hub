@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   otp: { type: String, default: null },
   otpExpiresAt: { type: Date, default: null },
   verified: { type: Boolean, default: false },
+  refreshToken: { type: String },
+  refreshTokenExpiresAt: { type: Date },
   isAdmin: { type: Boolean, default: false },
   isBanned: {
     type: Boolean,
